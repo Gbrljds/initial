@@ -1,0 +1,77 @@
+#!/bin/bash
+
+#Lendo em qual placa ele ira configurar o IP
+
+ls /etc/sysconfig/network-scripts/ | grep ifcfg
+echo "Em qual placa deseja configurar? : "
+read placa
+
+ifup $placa
+
+placa="ifcfg-"$placa
+
+while [ "$x" != "1" ]; do
+
+	echo "Digite o ip desejado: "
+	read ip
+	echo "Digite a mascara: "
+	read mask
+	echo "Digite o gateway: "
+	read gw
+	echo "Digite o hostname: "
+	read hname
+
+	clear
+
+	printf " Ip = $ip \n Mask = $mask \n Hostname = $hname\n"
+	printf "As informacoes estao corretas ? 1-Sim 2-Nao : "
+	read x
+
+	clear
+done
+
+cat /etc/sysconfig/network-scripts/$placa
+echo "Deseja configurar-1 ou alterar-2"
+read opc
+
+case $opc in
+	1 )
+		#configuracao na placa de rede
+		echo "IPADDR=$ip" >> /etc/sysconfig/network-scripts/$placa
+		echo "NETMASK=$mask" >> /etc/sysconfig/network-scripts/$placa
+
+		#configuracao para o gateway
+		echo "NETWORKING=yes" >> /etc/sysconfig/network
+		echo "GATEWAY=$gw" >> /etc/sysconfig/network
+		echo "HOSTNAME=$hname" >> /etc/sysconfig/network
+
+		#configuracao dos DNS`s
+		echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+		echo "nameserver 8.8.4.4" >> /etc/resolv.conf
+	;;
+
+	2 )
+		#configuracao na placa de rede
+		valorAt=`cat /etc/sysconfig/network-scripts/$placa | grep IPADDR`
+		sed -i s/$valorAt/IPADDR=$ip/g /etc/sysconfig/network-scripts/$placa
+		
+		valorAt=`cat /etc/sysconfig/network-scripts/$placa | grep NETMASK`
+		sed -i s/$valorAt/NETMASK=$mask/g /etc/sysconfig/network-scripts/$placa
+
+		#configuracao para o gateway
+		valorAt=`cat /etc/sysconfig/network | grep NETWORKING`
+		sed -i s/$valorAt/NETWORKING=yes/g /etc/sysconfig/network
+		
+		valorAt=`cat /etc/sysconfig/network | grep GATEWAY`
+		sed -i s/$valorAt/GATEWAY=$gw/g /etc/sysconfig/network
+
+		valorAt=`cat /etc/sysconfig/network | grep HOSTNAME`
+		sed -i s/$valorAt/HOSTNAME=$hname/g /etc/sysconfig/network
+
+		#configuracao dos DNS`s
+		echo "nameserver 8.8.8.8" > /etc/resolv.conf
+		echo "nameserver 8.8.4.4" > /etc/resolv.conf	
+	;;
+esac
+sleep 5
+service network restart
