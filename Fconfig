@@ -45,8 +45,12 @@ case $opc in
 		echo "GATEWAY=$gw" >> /etc/sysconfig/network
 		echo "HOSTNAME=$hname" >> /etc/sysconfig/network
 
+		echo "Aguarde um segundo " && sleep 2
+
+		service network restart
+
 		#configuracao dos DNS`s
-		echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+		echo "nameserver 8.8.8.8" > /etc/resolv.conf
 		echo "nameserver 8.8.4.4" >> /etc/resolv.conf
 	;;
 
@@ -68,10 +72,13 @@ case $opc in
 		valorAt=`cat /etc/sysconfig/network | grep HOSTNAME`
 		sed -i s/$valorAt/HOSTNAME=$hname/g /etc/sysconfig/network
 
+		echo "Aguarde um segundo " && sleep 2
+
+		service network restart
+
 		#configuracao dos DNS`s
 		echo "nameserver 8.8.8.8" > /etc/resolv.conf
-		echo "nameserver 8.8.4.4" > /etc/resolv.conf	
+		echo "nameserver 8.8.4.4" >> /etc/resolv.conf	
 	;;
 esac
 sleep 5
-service network restart
